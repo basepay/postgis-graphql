@@ -1,0 +1,57 @@
+version: '3.6'
+
+networks:
+  postgraph:
+    external: true
+
+services:
+  phppgadmin:
+    container_name: phppgadmin
+    image: docker.io/bitnami/phppgadmin:7
+    env_file:
+      - ./.env
+    ports:
+      - '80:8080'
+      - '443:8443'
+    depends_on:
+      - postgresql
+    networks:
+      - postgraph
+
+  postgresql:
+    container_name: postgresql
+    build:
+      context: postgresql
+    env_file:
+      - ./.env
+    ports:
+      - published: 5432
+        target: 5432
+    networks:
+      - postgraph
+
+  postgraphile:
+    container_name: postgraphile
+    build:
+      context: postgraphile
+    env_file:
+      - ./.env
+    depends_on:
+      - postgresql
+    networks:
+      - postgraph
+    ports:
+      - published: 5433
+        target: 5433
+    command: [
+        "--connection",
+        "${POSTGRES_URL}",
+        "--port",
+        "5433",
+        "--schema",
+        "public",
+        "--enhance-graphiql",
+        "--allow-explain",
+        "--append-plugins",
+        "postgraphile-plugin-connection-filter"
+    ]
