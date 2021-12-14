@@ -1,8 +1,11 @@
 \connect db;
 
-CREATE TABLE public.lorem
+CREATE EXTENSION postgis;
+
+CREATE TABLE public.locations
 (
     id          SERIAL PRIMARY KEY,
-    content     TEXT,
-    created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    name        TEXT default null,
+    location    GEOGRAPHY(Point, 4326) default null,
+    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

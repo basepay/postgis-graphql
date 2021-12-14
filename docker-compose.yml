@@ -1,7 +1,7 @@
 version: '3.6'
 
 networks:
-  postgraph:
+  postgraphql:
     external: true
 
 services:
@@ -13,7 +13,7 @@ services:
     ports:
       - "5431:80"
     networks:
-      - postgraph
+      - postgraphql
 
   postgresql:
     container_name: postgresql
@@ -25,30 +25,21 @@ services:
       - published: 5432
         target: 5432
     networks:
-      - postgraph
+      - postgraphql
 
-  postgraphile:
-    container_name: postgraphile
-    build:
-      context: postgraphile
+  hasura:
+    container_name: hasura
+    image: hasura/graphql-engine:latest
+    ports:
+      - "5430:8080"
+    depends_on:
+      - db
     env_file:
       - ./.env
-    depends_on:
-      - postgresql
+    environment:
+      HASURA_GRAPHQL_DATABASE_URL: "${DATABASE_URL}"
+      HASURA_GRAPHQL_ENABLE_CONSOLE: "${HASURA_GRAPHQL_ENABLE_CONSOLE}"
+      HASURA_GRAPHQL_DEV_MODE: "${HASURA_GRAPHQL_DEV_MODE}"
+      HASURA_GRAPHQL_ADMIN_SECRET: "${HASURA_GRAPHQL_ADMIN_SECRET}"
     networks:
-      - postgraph
-    ports:
-      - published: 5433
-        target: 5433
-    command: [
-        "--connection",
-        "${POSTGRES_URL}",
-        "--port",
-        "5433",
-        "--schema",
-        "public",
-        "--enhance-graphiql",
-        "--allow-explain",
-        "--append-plugins",
-        "postgraphile-plugin-connection-filter"
-    ]
+      - postgraphql
